@@ -120,7 +120,7 @@ static unsigned char *fix_key_length(unsigned char *key, xxtea_long key_len)
 {
     xxtea_long i;
     if (key_len < 16) {
-        key = (char *)emalloc(16);
+        key = (unsigned char *)emalloc(16);
         for (i = key_len; i < 16; i++) {
             key[i] = '\0';
         }

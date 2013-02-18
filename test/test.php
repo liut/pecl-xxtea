@@ -6,4 +6,9 @@ echo "str:key\t", xxtea_decrypt(xxtea_encrypt("12222222222222", "222222222222222
 echo "str:key\t", xxtea_decrypt(xxtea_encrypt("12222222222222", "22222222222"), "22222222222"), "\n";
 echo "\n";
 print_r(xxtea_info());
-?>
+
+echo 'A:A', "\t"; // string(12) "bKIlXWXSJvE="
+var_dump(base64_encode(xxtea_encrypt('A','A')));
+echo PHP_EOL;
+
+
