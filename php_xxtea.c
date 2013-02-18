@@ -116,6 +116,18 @@ static unsigned char *php_xxtea_decrypt(unsigned char *data, xxtea_long len, uns
     return result;
 }
 
+static unsigned char *fix_key_length(unsigned char *key, xxtea_long key_len)
+{
+    xxtea_long i;
+    if (key_len < 16) {
+        key = (char *)emalloc(16);
+        for (i = key_len; i < 16; i++) {
+            key[i] = '\0';
+        }
+    }
+
+}
+
 /* {{{ proto string xxtea_encrypt(string data, string key)
    Encrypt string using XXTEA algorithm */
 ZEND_FUNCTION(xxtea_encrypt)
@@ -128,7 +140,8 @@ ZEND_FUNCTION(xxtea_encrypt)
         return;
     }
 	if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
-    if (key_len != 16) RETURN_FALSE;
+    //if (key_len == 0) RETURN_FALSE;
+    fix_key_length(&key, key_len);
     result = php_xxtea_encrypt(data, data_len, key, &ret_length);
     if (result != NULL) {
         RETVAL_STRINGL((char *)result, ret_length, 0);
@@ -151,7 +164,8 @@ ZEND_FUNCTION(xxtea_decrypt)
         return;
     }
 	if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
-    if (key_len != 16) RETURN_FALSE;
+    //if (key_len == 0) RETURN_FALSE;
+    fix_key_length(&key, key_len);
     result = php_xxtea_decrypt(data, data_len, key, &ret_length);
     if (result != NULL) {
 		RETVAL_STRINGL((char *)result, ret_length, 0);

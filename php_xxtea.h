@@ -29,7 +29,7 @@ extern zend_module_entry xxtea_module_entry;
 
 #define XXTEA_MODULE_NAME        "xxtea"
 #define XXTEA_BUILD_DATE         __DATE__ " " __TIME__
-#define XXTEA_VERSION            "1.0.3"
+#define XXTEA_VERSION            "1.0.4"
 #define XXTEA_AUTHOR             "Ma Bingyao"
 #define XXTEA_HOMEPAGE           "http://www.coolcode.cn/?p=209"
 
