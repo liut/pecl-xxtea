@@ -1,6 +1,7 @@
 /***********************************************************************
 
-    Copyright 2006-2007 Ma Bingyao
+    Copyright 2006-2009 Ma Bingyao
+    Copyright 2013 Gao Chunhui, Liu Tao
 
     These sources is free software. Redistributions of source code must
     retain the above copyright notice. Redistributions in binary form
@@ -11,10 +12,10 @@
     but WITHOUT ANY WARRANTY. Without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-        You may contact the author by:
-           e-mail:  andot@coolcode.cn
+        github: https://github.com/liut/pecl-xxtea
 
 *************************************************************************/
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -57,26 +58,29 @@ ZEND_GET_MODULE(xxtea)
 
 static xxtea_long *xxtea_to_long_array(unsigned char *data, xxtea_long len, int include_length, xxtea_long *ret_len) {
     xxtea_long i, n, *result;
-	n = len >> 2;
+
+    n = len >> 2;
     n = (((len & 3) == 0) ? n : n + 1);
     if (include_length) {
         result = (xxtea_long *)emalloc((n + 1) << 2);
         result[n] = len;
-	    *ret_len = n + 1;
-	} else {
+        *ret_len = n + 1;
+    } else {
         result = (xxtea_long *)emalloc(n << 2);
-	    *ret_len = n;
+        *ret_len = n;
     }
-	memset(result, 0, n << 2);
-	for (i = 0; i < len; i++) {
+    memset(result, 0, n << 2);
+    for (i = 0; i < len; i++) {
         result[i >> 2] |= (xxtea_long)data[i] << ((i & 3) << 3);
     }
+
     return result;
 }
 
 static unsigned char *xxtea_to_byte_array(xxtea_long *data, xxtea_long len, int include_length, xxtea_long *ret_len) {
     xxtea_long i, n, m;
     unsigned char *result;
+
     n = len << 2;
     if (include_length) {
         m = data[len - 1];
@@ -84,65 +88,77 @@ static unsigned char *xxtea_to_byte_array(xxtea_long *data, xxtea_long len, int 
         n = m;
     }
     result = (unsigned char *)emalloc(n + 1);
-	for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
         result[i] = (unsigned char)((data[i >> 2] >> ((i & 3) << 3)) & 0xff);
     }
-	result[n] = '\0';
-	*ret_len = n;
-	return result;
+    result[n] = '\0';
+    *ret_len = n;
+
+    return result;
 }
 
 static unsigned char *php_xxtea_encrypt(unsigned char *data, xxtea_long len, unsigned char *key, xxtea_long *ret_len) {
     unsigned char *result;
     xxtea_long *v, *k, v_len, k_len;
+
     v = xxtea_to_long_array(data, len, 1, &v_len);
     k = xxtea_to_long_array(key, 16, 0, &k_len);
     xxtea_long_encrypt(v, v_len, k);
     result = xxtea_to_byte_array(v, v_len, 0, ret_len);
     efree(v);
     efree(k);
+
     return result;
 }
 
 static unsigned char *php_xxtea_decrypt(unsigned char *data, xxtea_long len, unsigned char *key, xxtea_long *ret_len) {
     unsigned char *result;
     xxtea_long *v, *k, v_len, k_len;
+
     v = xxtea_to_long_array(data, len, 0, &v_len);
     k = xxtea_to_long_array(key, 16, 0, &k_len);
     xxtea_long_decrypt(v, v_len, k);
     result = xxtea_to_byte_array(v, v_len, 1, ret_len);
     efree(v);
     efree(k);
+
     return result;
 }
 
 static unsigned char *fix_key_length(unsigned char *key, xxtea_long key_len)
 {
-    xxtea_long i;
-    if (key_len < 16) {
-        key = (unsigned char *)emalloc(16);
-        for (i = key_len; i < 16; i++) {
-            key[i] = '\0';
-        }
-    }
+    unsigned char *tmp = (unsigned char *)emalloc(16);
 
+    memcpy(tmp, key, key_len);
+    memset(tmp + key_len, '\0', 16 - key_len);
+
+    return tmp;
 }
 
 /* {{{ proto string xxtea_encrypt(string data, string key)
    Encrypt string using XXTEA algorithm */
 ZEND_FUNCTION(xxtea_encrypt)
 {
-    unsigned char *data, *key;
-    unsigned char *result;
+    unsigned char *data, *key, *result;
     xxtea_long data_len, key_len, ret_length;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &data, &data_len, &key, &key_len) == FAILURE) {
         return;
     }
-	if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
-    //if (key_len == 0) RETURN_FALSE;
-    fix_key_length(&key, key_len);
-    result = php_xxtea_encrypt(data, data_len, key, &ret_length);
+
+    if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
+    if (key_len == 0) php_error_docref(NULL TSRMLS_CC, E_ERROR, "empty key!");
+    if (key_len < 16) {
+        unsigned char *key2 = fix_key_length(key, key_len);
+
+        result = php_xxtea_encrypt(data, data_len, key2, &ret_length);
+        efree(key2);
+    }
+    else
+    {
+        result = php_xxtea_encrypt(data, data_len, key, &ret_length);
+    }
+
     if (result != NULL) {
         RETVAL_STRINGL((char *)result, ret_length, 0);
     } else {
@@ -156,19 +172,28 @@ ZEND_FUNCTION(xxtea_encrypt)
    Decrypt string using XXTEA algorithm */
 ZEND_FUNCTION(xxtea_decrypt)
 {
-    unsigned char *data, *key;
-    unsigned char *result;
+    unsigned char *data, *key, *result;
     xxtea_long data_len, key_len, ret_length;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &data, &data_len, &key, &key_len) == FAILURE) {
         return;
     }
-	if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
-    //if (key_len == 0) RETURN_FALSE;
-    fix_key_length(&key, key_len);
-    result = php_xxtea_decrypt(data, data_len, key, &ret_length);
+
+    if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
+    if (key_len == 0) php_error_docref(NULL TSRMLS_CC, E_ERROR, "empty key!");
+    if (key_len < 16) {
+        unsigned char *key2 = fix_key_length(key, key_len);
+
+        result = php_xxtea_decrypt(data, data_len, key2, &ret_length);
+        efree(key2);
+    }
+    else
+    {
+        result = php_xxtea_decrypt(data, data_len, key, &ret_length);
+    }
+
     if (result != NULL) {
-		RETVAL_STRINGL((char *)result, ret_length, 0);
+        RETVAL_STRINGL((char *)result, ret_length, 0);
     } else {
         RETURN_FALSE;
     }
@@ -190,9 +215,9 @@ ZEND_MINFO_FUNCTION(xxtea)
     php_info_print_table_start();
     php_info_print_table_row(2, "xxtea support", "enabled");
     php_info_print_table_row(2, "xxtea module version", XXTEA_VERSION);
-	php_info_print_table_row(2, "xxtea author", XXTEA_AUTHOR);
+    php_info_print_table_row(2, "xxtea author", XXTEA_AUTHOR);
     php_info_print_table_row(2, "xxtea homepage", XXTEA_HOMEPAGE);
-	php_info_print_table_end();
+    php_info_print_table_end();
 }
 
 ZEND_FUNCTION(xxtea_info)
@@ -200,7 +225,7 @@ ZEND_FUNCTION(xxtea_info)
     array_init(return_value);
     add_assoc_string(return_value, "ext_version", XXTEA_VERSION, 1);
     add_assoc_string(return_value, "ext_build_date", XXTEA_BUILD_DATE, 1);
-	add_assoc_string(return_value, "ext_author", XXTEA_AUTHOR, 1);
+    add_assoc_string(return_value, "ext_author", XXTEA_AUTHOR, 1);
     add_assoc_string(return_value, "ext_homepage", XXTEA_HOMEPAGE, 1);
 }
 
