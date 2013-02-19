@@ -1,6 +1,7 @@
 /***********************************************************************
 
-    Copyright 2006-2007 Ma Bingyao
+    Copyright 2006-2009 Ma Bingyao
+    Copyright 2013 Gao Chunhui, Liu Tao
 
     These sources is free software. Redistributions of source code must
     retain the above copyright notice. Redistributions in binary form
@@ -11,8 +12,7 @@
     but WITHOUT ANY WARRANTY. Without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-        You may contact the author by:
-           e-mail:  andot@coolcode.cn
+        github: https://github.com/liut/pecl-xxtea
 
 *************************************************************************/
 

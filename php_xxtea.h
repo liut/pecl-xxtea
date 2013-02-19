@@ -1,6 +1,7 @@
 /***********************************************************************
 
-    Copyright 2006-2007 Ma Bingyao
+    Copyright 2006-2009 Ma Bingyao
+    Copyright 2013 Gao Chunhui, Liu Tao
 
     These sources is free software. Redistributions of source code must
     retain the above copyright notice. Redistributions in binary form
@@ -11,8 +12,7 @@
     but WITHOUT ANY WARRANTY. Without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-        You may contact the author by:
-           e-mail:  andot@coolcode.cn
+        github: https://github.com/liut/pecl-xxtea
 
 *************************************************************************/
 
@@ -30,8 +30,8 @@ extern zend_module_entry xxtea_module_entry;
 #define XXTEA_MODULE_NAME        "xxtea"
 #define XXTEA_BUILD_DATE         __DATE__ " " __TIME__
 #define XXTEA_VERSION            "1.0.4"
-#define XXTEA_AUTHOR             "Ma Bingyao"
-#define XXTEA_HOMEPAGE           "http://www.coolcode.cn/?p=209"
+#define XXTEA_AUTHOR             "Ma Bingyao, Gao Chunhui, Liu Tao"
+#define XXTEA_HOMEPAGE           "https://github.com/liut/pecl-xxtea"
 
 ZEND_MINIT_FUNCTION(xxtea);
 ZEND_MSHUTDOWN_FUNCTION(xxtea);
