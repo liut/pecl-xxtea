@@ -146,7 +146,7 @@ ZEND_FUNCTION(xxtea_encrypt)
         return;
     }
 
-    if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
+    if (data_len == 0) RETURN_FALSE;
     if (key_len == 0) php_error_docref(NULL TSRMLS_CC, E_ERROR, "empty key!");
     if (key_len < 16) {
         unsigned char *key2 = fix_key_length(key, key_len);
@@ -179,7 +179,7 @@ ZEND_FUNCTION(xxtea_decrypt)
         return;
     }
 
-    if (data_len == 0) RETVAL_STRINGL(NULL, 0, 0);
+    if (data_len == 0) RETURN_FALSE;
     if (key_len == 0) php_error_docref(NULL TSRMLS_CC, E_ERROR, "empty key!");
     if (key_len < 16) {
         unsigned char *key2 = fix_key_length(key, key_len);
